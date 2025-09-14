@@ -105,7 +105,7 @@ export default function HomePage() {
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
           transition={{ delay: 0.8, duration: 0.8 }}
-          className="px-6 py-2 bg-white text-green-700 font-semibold rounded-full shadow-lg hover:bg-gray-100 transition"
+          className="w-full max-w-xs text-center py-3 bg-white text-green-700 font-semibold rounded-full shadow-lg hover:bg-gray-100 transition"
         >
           Back Home
         </motion.a>
@@ -114,89 +114,70 @@ export default function HomePage() {
   }
 
   return (
-    <div className="max-w-3xl lg:mx-auto my-10 mx-10">
+    <div className="max-w-3xl lg:mx-auto my-10 mx-4">
       <ToastContainer />
 
       {/* Heading + subheadline */}
-      <h1 className="text-4xl font-extrabold mb-2 bg-blue-700 bg-clip-text text-transparent">
+      <h1 className="text-4xl font-extrabold mb-2 bg-gradient-to-r from-blue-700 to-blue-500 bg-clip-text text-transparent">
         RBG Membership
       </h1>
-      <p className="text-blue-500 mb-8">
+      <p className="text-gray-600 mb-8">
         Helping members launch, grow, and succeed in their business.
       </p>
 
       {/* Form */}
-      <form onSubmit={handleSubmit} className="space-y-4">
-        <div>
-          <label className="block text-md text-gray-700 font-medium mb-1">
-            Full name
-          </label>
-          <input
+      <form onSubmit={handleSubmit} className="space-y-6">
+        {/* Personal Details */}
+        <Section title="Personal Details">
+          <Input
+            label="Full name"
             name="name"
             value={form.name}
             onChange={handleChange}
-            className="w-full rounded-md border text-gray-700 px-4 py-2 border-gray-300 focus:outline-none focus:ring-2 focus:ring-blue-500"
             placeholder="Ramesh..."
           />
-        </div>
+          <Input
+            label="Phone"
+            name="phone"
+            value={form.phone}
+            onChange={handleChange}
+            placeholder="+91900..."
+          />
+        </Section>
 
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-          <div>
-            <label className="block text-md text-gray-700 font-medium mb-1">
-              Phone
-            </label>
-            <input
-              name="phone"
-              value={form.phone}
-              onChange={handleChange}
-              className="w-full rounded-md border  text-gray-700 border-gray-300 px-4 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
-              placeholder="+91900..."
-            />
-          </div>
+        {/* Business */}
+        <Section title="Business">
+          <Input
+            label="Business title"
+            name="businessTitle"
+            value={form.businessTitle}
+            onChange={handleChange}
+            placeholder="Cafe · Salon · Plumbing"
+          />
+        </Section>
 
-          <div>
-            <label className="block text-md font-medium mb-1">
-              Business title
-            </label>
-            <input
-              name="businessTitle"
-              value={form.businessTitle}
-              onChange={handleChange}
-              className="w-full rounded-md border border-gray-300 text-gray-700 px-4 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
-              placeholder="Cafe · Salon · Plumbing"
-            />
-          </div>
-        </div>
-
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-          <div>
-            <label className="block text-md font-medium mb-1">Area</label>
-            <input
-              name="area"
-              value={form.area}
-              onChange={handleChange}
-              className="w-full rounded-md border border-gray-300 text-gray-700 px-4 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
-              placeholder="Bandra"
-            />
-          </div>
-
-          <div>
-            <label className="block text-md font-medium mb-1">
-              Town / City
-            </label>
-            <input
+        {/* Address */}
+        <Section title="Address">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <Input
+              label="Town / City"
               name="town"
               value={form.town}
               onChange={handleChange}
-              className="w-full rounded-md border  text-gray-700 border-gray-300 px-4 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
               placeholder="Mumbai"
             />
+            <Input
+              label="Area"
+              name="area"
+              value={form.area}
+              onChange={handleChange}
+              placeholder="Bandra"
+            />
           </div>
-        </div>
+        </Section>
 
-        {/* Interactive rating */}
-        <div>
-          <label className="block text-md font-medium mb-2">Rating</label>
+        {/* Rating */}
+        <Section title="Rating">
           <div className="flex items-center gap-2">
             <Stars
               rating={form.rating}
@@ -208,14 +189,14 @@ export default function HomePage() {
               ({form.rating.toFixed(1)})
             </span>
           </div>
-        </div>
+        </Section>
 
-        {/* Centered Submit Button */}
-        <div className="mt-6 flex justify-center">
+        {/* Full-width Submit Button */}
+        <div className="pt-4">
           <button
             type="submit"
             disabled={loading}
-            className="px-16 py-3 rounded-full bg-blue-700 text-white font-semibold shadow hover:opacity-90 disabled:opacity-60"
+            className="w-full py-3 rounded-full bg-blue-700 text-white font-semibold shadow hover:bg-blue-800 transition disabled:opacity-60"
           >
             {loading ? "Submitting..." : "Submit"}
           </button>
@@ -225,7 +206,53 @@ export default function HomePage() {
   );
 }
 
-/* Interactive Stars Component */
+/* Section Wrapper */
+function Section({
+  title,
+  children,
+}: {
+  title: string;
+  children: React.ReactNode;
+}) {
+  return (
+    <div className="bg-white p-5 rounded-xl shadow-sm border border-gray-200">
+      <h2 className="text-lg font-semibold text-gray-800 mb-4">{title}</h2>
+      {children}
+    </div>
+  );
+}
+
+/* Input Component */
+function Input({
+  label,
+  name,
+  value,
+  onChange,
+  placeholder,
+}: {
+  label: string;
+  name: string;
+  value: string;
+  onChange: (e: React.ChangeEvent<HTMLInputElement>) => void;
+  placeholder?: string;
+}) {
+  return (
+    <div className="mb-4">
+      <label className="block text-sm font-medium text-gray-700 mb-1">
+        {label}
+      </label>
+      <input
+        name={name}
+        value={value}
+        onChange={onChange}
+        placeholder={placeholder}
+        className="w-full rounded-md border border-gray-300 px-4 py-2 text-gray-700 focus:outline-none focus:ring-2 focus:ring-blue-500"
+      />
+    </div>
+  );
+}
+
+/* Stars Component */
 function Stars({
   rating,
   onChange,
@@ -246,8 +273,8 @@ function Stars({
             viewBox="0 0 20 20"
             fill={filled ? "currentColor" : "none"}
             stroke="currentColor"
-            className={`w-7 h-7 cursor-pointer ${
-              filled ? "text-yellow-400" : "text-gray-300"
+            className={`w-7 h-7 cursor-pointer transition ${
+              filled ? "text-yellow-400" : "text-gray-300 hover:text-yellow-200"
             }`}
           >
             <path
