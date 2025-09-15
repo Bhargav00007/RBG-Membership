@@ -8,7 +8,11 @@ type Row = {
   name: string;
   phone: string;
   businessTitle: string;
-  address: { area: string; town: string };
+  address: {
+    district: string;
+    mandal: string;
+    area: string;
+  };
   rating: number;
   createdAt?: string | null;
 };
@@ -30,47 +34,74 @@ export default function SubmissionsPage() {
   }, []);
 
   return (
-    <div>
+    <div className="max-w-5xl mx-auto my-10 px-4">
+      {/* Header */}
       <div className="flex items-center justify-between mb-6">
-        <h2 className="text-2xl font-semibold">Submissions</h2>
-        <Link href="/" className="text-sm text-primary underline">
-          Add new
+        <h2 className="text-3xl font-bold text-blue-700">Submitted Members</h2>
+        <Link
+          href="/"
+          className="text-sm font-medium text-blue-600 hover:underline"
+        >
+          + Add new
         </Link>
       </div>
 
-      <div className="grid gap-4">
-        {loading && <div className="text-gray-500">Loading...</div>}
-        {error && <div className="text-red-600">{error}</div>}
-        {!loading && rows.length === 0 && (
-          <div className="text-gray-500">No submissions yet.</div>
-        )}
+      {/* Status */}
+      {loading && <div className="text-gray-500">Loading...</div>}
+      {error && <div className="text-red-600">{error}</div>}
+      {!loading && rows.length === 0 && (
+        <div className="text-gray-500">No submissions yet.</div>
+      )}
 
+      {/* Submissions List */}
+      <div className="grid gap-6">
         {rows.map((row) => (
           <div
             key={row.id}
-            className="bg-white/80 rounded-xl p-4 shadow border flex flex-col sm:flex-row sm:items-center sm:justify-between"
+            className="bg-white rounded-xl shadow-sm border border-gray-200 p-5"
           >
-            <div>
-              <div className="text-lg font-medium">{row.name}</div>
-              <div className="text-sm text-gray-600">
-                {row.businessTitle} • {row.address.area}
-                {row.address.town ? `, ${row.address.town}` : ""}
+            {/* Top Row */}
+            <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center">
+              <div>
+                <h3 className="text-lg font-semibold text-gray-800">
+                  {row.name}
+                </h3>
+                <p className="text-sm text-gray-600">{row.businessTitle}</p>
               </div>
-              <div className="text-xs text-gray-500 mt-1">
-                Phone: {row.phone}
+
+              <div className="mt-2 sm:mt-0 flex items-center gap-3">
+                <Stars rating={row.rating ?? 0} />
+                <span className="text-sm text-gray-500">
+                  ({(row.rating ?? 0).toFixed(1)})
+                </span>
               </div>
             </div>
 
-            <div className="mt-3 sm:mt-0 flex items-center gap-4">
-              <div className="flex items-center gap-2">
-                <Stars rating={row.rating ?? 0} />
-                <div className="text-sm text-gray-500">
-                  ({(row.rating ?? 0).toFixed(1)})
-                </div>
+            {/* Divider */}
+            <hr className="my-4 border-gray-200" />
+
+            {/* Address + Phone */}
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 text-sm text-gray-700">
+              <div>
+                <span className="font-medium">District:</span>{" "}
+                {row.address.district || "-"}
               </div>
-              <div className="text-xs text-gray-400">
-                {row.createdAt ? new Date(row.createdAt).toLocaleString() : ""}
+              <div>
+                <span className="font-medium">Mandal:</span>{" "}
+                {row.address.mandal || "-"}
               </div>
+              <div>
+                <span className="font-medium">Area:</span>{" "}
+                {row.address.area || "-"}
+              </div>
+              <div>
+                <span className="font-medium">Phone:</span> {row.phone}
+              </div>
+            </div>
+
+            {/* Footer */}
+            <div className="mt-3 text-xs text-gray-400">
+              {row.createdAt ? new Date(row.createdAt).toLocaleString() : ""}
             </div>
           </div>
         ))}
@@ -79,6 +110,7 @@ export default function SubmissionsPage() {
   );
 }
 
+/* Read-only Stars Component */
 function Stars({ rating }: { rating: number }) {
   const full = Math.floor(rating);
   const half = rating - full >= 0.5;

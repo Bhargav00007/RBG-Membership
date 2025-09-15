@@ -5,8 +5,9 @@ export interface Submission {
   phone: string;
   businessTitle: string;
   address: {
+    district: string;
+    mandal: string;
     area: string;
-    town: string;
   };
   rating?: number; // optional numeric rating, 0-5 (display only)
   createdAt?: string;

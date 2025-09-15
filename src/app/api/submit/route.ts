@@ -11,8 +11,9 @@ interface Submission {
   phone: string;
   businessTitle: string;
   address: {
+    district: string;
+    mandal: string;
     area: string;
-    town: string;
   };
   rating: number | null;
   createdAt: Date;
@@ -38,8 +39,9 @@ export async function POST(req: NextRequest) {
       phone: String(phone).trim(),
       businessTitle: String(businessTitle).trim(),
       address: {
+        district: String(address?.district ?? "").trim(),
+        mandal: String(address?.mandal ?? "").trim(),
         area: String(address?.area ?? "").trim(),
-        town: String(address?.town ?? "").trim(),
       },
       rating:
         typeof rating === "number" ? Math.max(0, Math.min(5, rating)) : null,
@@ -71,7 +73,11 @@ export async function GET() {
       name: r.name,
       phone: r.phone,
       businessTitle: r.businessTitle,
-      address: r.address,
+      address: {
+        district: r.address.district,
+        mandal: r.address.mandal,
+        area: r.address.area,
+      },
       rating: r.rating ?? 0,
       createdAt: r.createdAt.toISOString(),
     }));

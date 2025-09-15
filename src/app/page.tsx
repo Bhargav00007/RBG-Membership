@@ -10,8 +10,9 @@ type FormState = {
   name: string;
   phone: string;
   businessTitle: string;
+  district: string;
+  mandal: string;
   area: string;
-  town: string;
   rating: number;
 };
 
@@ -20,8 +21,9 @@ export default function HomePage() {
     name: "",
     phone: "",
     businessTitle: "",
+    district: "",
+    mandal: "",
     area: "",
-    town: "",
     rating: 0,
   });
   const [loading, setLoading] = useState(false);
@@ -62,7 +64,11 @@ export default function HomePage() {
           name: form.name,
           phone: form.phone,
           businessTitle: form.businessTitle,
-          address: { area: form.area, town: form.town },
+          address: {
+            district: form.district,
+            mandal: form.mandal,
+            area: form.area,
+          },
           rating: form.rating,
         }),
       });
@@ -118,11 +124,11 @@ export default function HomePage() {
       <ToastContainer />
 
       {/* Heading + subheadline */}
-      <h1 className="text-4xl font-extrabold mb-2 bg-gradient-to-r from-blue-700 to-blue-500 bg-clip-text text-transparent">
-        RBG Membership
+      <h1 className="text-4xl font-extrabold mb-1 pb-1 bg-gradient-to-r from-blue-700 to-blue-500 bg-clip-text text-transparent">
+        Digital attendees registration
       </h1>
       <p className="text-gray-600 mb-8">
-        Helping members launch, grow, and succeed in their business.
+        Unity • Business • Success – The RBG Way
       </p>
 
       {/* Form */}
@@ -146,7 +152,7 @@ export default function HomePage() {
         </Section>
 
         {/* Business */}
-        <Section title="Business">
+        <Section title="Profession">
           <Input
             label="Business title"
             name="businessTitle"
@@ -158,20 +164,27 @@ export default function HomePage() {
 
         {/* Address */}
         <Section title="Address">
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
             <Input
-              label="Town / City"
-              name="town"
-              value={form.town}
+              label="District"
+              name="district"
+              value={form.district}
               onChange={handleChange}
-              placeholder="Mumbai"
+              placeholder="Hyderabad"
+            />
+            <Input
+              label="Mandal"
+              name="mandal"
+              value={form.mandal}
+              onChange={handleChange}
+              placeholder="Shaikpet"
             />
             <Input
               label="Area"
               name="area"
               value={form.area}
               onChange={handleChange}
-              placeholder="Bandra"
+              placeholder="Banjara Hills"
             />
           </div>
         </Section>
