@@ -5,6 +5,7 @@ import { ToastContainer, toast } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 import { FaCheckCircle } from "react-icons/fa";
 import { motion } from "framer-motion";
+import Image from "next/image";
 
 type FormState = {
   name: string;
@@ -115,106 +116,131 @@ export default function HomePage() {
         >
           Back Home
         </motion.a>
+
+        {/* Footer on success screen */}
+        <div className="mt-10 text-xs text-white/80 text-center">
+          © 2025 FestGo Events Pvt Ltd. All rights reserved.
+          <br />
+          Design & Developed by Festgo Events Pvt Ltd. ❤️
+        </div>
       </div>
     );
   }
 
   return (
-    <div className="max-w-3xl lg:mx-auto my-10 mx-4">
-      <ToastContainer />
+    <div className="flex flex-col min-h-screen">
+      <div className="flex-1 max-w-3xl lg:mx-auto my-5 mx-4">
+        <ToastContainer />
 
-      {/* Heading + subheadline */}
-      <h1 className="text-4xl font-extrabold mb-1 pb-1 bg-gradient-to-r from-blue-700 to-blue-500 bg-clip-text text-transparent">
-        Digital attendees registration
-      </h1>
-      <p className="text-gray-600 mb-8">
-        Unity • Business • Success – The RBG Way
-      </p>
-
-      {/* Form */}
-      <form onSubmit={handleSubmit} className="space-y-6">
-        {/* Personal Details */}
-        <Section title="Personal Details">
-          <Input
-            label="Full name"
-            name="name"
-            value={form.name}
-            onChange={handleChange}
-            placeholder="Ramesh..."
+        {/* Heading + Logo */}
+        <div className="flex flex-col items-center mb-4">
+          <Image
+            src="/logo.jpeg"
+            alt="RBG Logo"
+            width={150}
+            height={150}
+            className="rounded-full mb-0 w-[150px] h-[150px]"
           />
-          <Input
-            label="Phone"
-            name="phone"
-            value={form.phone}
-            onChange={handleChange}
-            placeholder="+91900..."
-          />
-        </Section>
-
-        {/* Business */}
-        <Section title="Profession">
-          <Input
-            label="Business title"
-            name="businessTitle"
-            value={form.businessTitle}
-            onChange={handleChange}
-            placeholder="Cafe · Salon · Plumbing"
-          />
-        </Section>
-
-        {/* Address */}
-        <Section title="Address">
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-            <Input
-              label="District"
-              name="district"
-              value={form.district}
-              onChange={handleChange}
-              placeholder="Hyderabad"
-            />
-            <Input
-              label="Mandal"
-              name="mandal"
-              value={form.mandal}
-              onChange={handleChange}
-              placeholder="Shaikpet"
-            />
-            <Input
-              label="Area"
-              name="area"
-              value={form.area}
-              onChange={handleChange}
-              placeholder="Banjara Hills"
-            />
-          </div>
-        </Section>
-
-        {/* Rating */}
-        <Section title="Rating">
-          <div className="flex items-center gap-2">
-            <Stars
-              rating={form.rating}
-              onChange={(value) =>
-                setForm((prev) => ({ ...prev, rating: value }))
-              }
-            />
-            <span className="text-md text-gray-500">
-              ({form.rating.toFixed(1)})
-            </span>
-          </div>
-        </Section>
-
-        {/* Full-width Submit Button */}
-        <div className="pt-4">
-          <button
-            type="submit"
-            disabled={loading}
-            className="w-full py-3 rounded-full bg-blue-700 text-white font-semibold shadow hover:bg-blue-800 transition disabled:opacity-60"
-          >
-            {loading ? "Submitting..." : "Submit"}
-          </button>
+          <h1 className="text-4xl pb-1 sm:text-4xl lg:text-4xl font-extrabold bg-gradient-to-r from-blue-700 to-blue-500 bg-clip-text text-transparent text-center">
+            Digital attendees registration
+          </h1>
         </div>
-      </form>
+
+        <p className="text-gray-600 mb-8 text-center lg:text-center">
+          Unity • Business • Success – The RBG Way
+        </p>
+
+        {/* Form */}
+        <form onSubmit={handleSubmit} className="space-y-6">
+          {/* Personal Details */}
+          <Section title="Personal Details">
+            <Input
+              label="Full name"
+              name="name"
+              value={form.name}
+              onChange={handleChange}
+              placeholder="Ramesh..."
+            />
+            <Input
+              label="Phone"
+              name="phone"
+              value={form.phone}
+              onChange={handleChange}
+              placeholder="+91900..."
+            />
+          </Section>
+
+          {/* Business */}
+          <Section title="Profession">
+            <Input
+              label="Business title"
+              name="businessTitle"
+              value={form.businessTitle}
+              onChange={handleChange}
+              placeholder="Cafe · Salon · Plumbing"
+            />
+          </Section>
+
+          {/* Address */}
+          <Section title="Address">
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+              <Input
+                label="District"
+                name="district"
+                value={form.district}
+                onChange={handleChange}
+                placeholder="Hyderabad"
+              />
+              <Input
+                label="Mandal"
+                name="mandal"
+                value={form.mandal}
+                onChange={handleChange}
+                placeholder="Shaikpet"
+              />
+              <Input
+                label="Area"
+                name="area"
+                value={form.area}
+                onChange={handleChange}
+                placeholder="Banjara Hills"
+              />
+            </div>
+          </Section>
+
+          {/* Rating */}
+          <Section title="Rating">
+            <div className="flex items-center gap-2">
+              <Stars
+                rating={form.rating}
+                onChange={(value) =>
+                  setForm((prev) => ({ ...prev, rating: value }))
+                }
+              />
+              <span className="text-md text-gray-500">
+                ({form.rating.toFixed(1)})
+              </span>
+            </div>
+          </Section>
+
+          {/* Full-width Submit Button */}
+          <div className="pt-4">
+            <button
+              type="submit"
+              disabled={loading}
+              className="w-full py-3 rounded-full bg-blue-700 text-white font-semibold shadow hover:bg-blue-800 transition disabled:opacity-60"
+            >
+              {loading ? "Submitting..." : "Submit"}
+            </button>
+          </div>
+        </form>
+      </div>
+
+      {/* Footer (always bottom center) */}
+      <footer className="py-6 text-center text-xs text-gray-500">
+        © 2025 FestGo Events Pvt Ltd. All rights reserved.
+        <br />
+      </footer>
     </div>
   );
 }

@@ -3,20 +3,25 @@ import { NextResponse } from "next/server";
 import type { NextRequest } from "next/server";
 import { connectToDatabase } from "../../../lib/mongodb";
 import { ObjectId } from "mongodb";
+import { sendSMS, normalizePhoneNumber } from "../../../lib/sms";
 
-// Type for submissions
 interface Submission {
   _id?: ObjectId;
   name: string;
   phone: string;
   businessTitle: string;
   address: {
-    district: string;
-    mandal: string;
-    area: string;
+    district?: string;
+    mandal?: string;
+    area?: string;
   };
   rating: number | null;
   createdAt: Date;
+  smsStatus?: {
+    ok: boolean;
+    response?: unknown;
+    sentAt: Date;
+  };
 }
 
 export async function POST(req: NextRequest) {
@@ -34,9 +39,11 @@ export async function POST(req: NextRequest) {
     const { db } = await connectToDatabase();
     const collection = db.collection<Submission>("submissions");
 
+    const normalizedPhone = normalizePhoneNumber(String(phone).trim());
+
     const doc: Submission = {
       name: String(name).trim(),
-      phone: String(phone).trim(),
+      phone: normalizedPhone,
       businessTitle: String(businessTitle).trim(),
       address: {
         district: String(address?.district ?? "").trim(),
@@ -49,8 +56,31 @@ export async function POST(req: NextRequest) {
     };
 
     const result = await collection.insertOne(doc);
+    const insertedId = result.insertedId;
 
-    return NextResponse.json({ ok: true, id: result.insertedId.toString() });
+    // Fire-and-forget SMS send
+    const message = `Hi ${doc.name}, thank you for registering with RBG Membership. We'll be in touch soon.`;
+    void (async () => {
+      try {
+        const smsRes = await sendSMS(normalizedPhone, message);
+        await collection.updateOne(
+          { _id: insertedId },
+          {
+            $set: {
+              smsStatus: {
+                ok: smsRes.ok,
+                response: smsRes.providerResponse ?? smsRes.error,
+                sentAt: new Date(),
+              },
+            },
+          }
+        );
+      } catch (e) {
+        console.error("SMS error", e);
+      }
+    })();
+
+    return NextResponse.json({ ok: true, id: insertedId.toString() });
   } catch (err) {
     console.error("submit error", err);
     const message = err instanceof Error ? err.message : "Server error";
@@ -58,12 +88,14 @@ export async function POST(req: NextRequest) {
   }
 }
 
+// ✅ GET handler to fetch submissions
 export async function GET() {
   try {
     const { db } = await connectToDatabase();
     const collection = db.collection<Submission>("submissions");
+
     const rows = await collection
-      .find()
+      .find({})
       .sort({ createdAt: -1 })
       .limit(200)
       .toArray();
@@ -74,12 +106,13 @@ export async function GET() {
       phone: r.phone,
       businessTitle: r.businessTitle,
       address: {
-        district: r.address.district,
-        mandal: r.address.mandal,
-        area: r.address.area,
+        district: r.address?.district ?? "",
+        mandal: r.address?.mandal ?? "",
+        area: r.address?.area ?? "",
       },
       rating: r.rating ?? 0,
-      createdAt: r.createdAt.toISOString(),
+      createdAt: r.createdAt ? r.createdAt.toISOString() : null,
+      smsStatus: r.smsStatus ?? null,
     }));
 
     return NextResponse.json({ ok: true, rows: cleaned });
