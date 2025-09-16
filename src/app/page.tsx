@@ -116,13 +116,6 @@ export default function HomePage() {
         >
           Back Home
         </motion.a>
-
-        {/* Footer on success screen */}
-        <div className="mt-10 text-xs text-white/80 text-center">
-          © 2025 FestGo Events Pvt Ltd. All rights reserved.
-          <br />
-          Design & Developed by Festgo Events Pvt Ltd. ❤️
-        </div>
       </div>
     );
   }
@@ -177,7 +170,7 @@ export default function HomePage() {
               name="businessTitle"
               value={form.businessTitle}
               onChange={handleChange}
-              placeholder="Cafe · Salon · Plumbing"
+              placeholder="Business, Job"
             />
           </Section>
 

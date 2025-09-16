@@ -41,6 +41,12 @@ export async function POST(req: NextRequest) {
 
     const normalizedPhone = normalizePhoneNumber(String(phone).trim());
 
+    // ✅ Check if this phone already has a successful SMS sent
+    const alreadySent = await collection.findOne({
+      phone: normalizedPhone,
+      "smsStatus.ok": true,
+    });
+
     const doc: Submission = {
       name: String(name).trim(),
       phone: normalizedPhone,
@@ -58,27 +64,44 @@ export async function POST(req: NextRequest) {
     const result = await collection.insertOne(doc);
     const insertedId = result.insertedId;
 
-    // Fire-and-forget SMS send
-    const message = `Hi ${doc.name}, thank you for registering with RBG Membership. We'll be in touch soon.`;
-    void (async () => {
-      try {
-        const smsRes = await sendSMS(normalizedPhone, message);
-        await collection.updateOne(
-          { _id: insertedId },
-          {
-            $set: {
-              smsStatus: {
-                ok: smsRes.ok,
-                response: smsRes.providerResponse ?? smsRes.error,
-                sentAt: new Date(),
+    if (!alreadySent) {
+      // ✅ Only send SMS if not already sent for this phone
+      const message = `Dear ${doc.name},
+You are registered for Palnadu Chapter Launch, 21 Sep, 9:30AM @ SNR Convention, NRT. Lunch follows.`;
+      void (async () => {
+        try {
+          const smsRes = await sendSMS(normalizedPhone, message);
+          await collection.updateOne(
+            { _id: insertedId },
+            {
+              $set: {
+                smsStatus: {
+                  ok: smsRes.ok,
+                  response: smsRes.providerResponse ?? smsRes.error,
+                  sentAt: new Date(),
+                },
               },
+            }
+          );
+        } catch (e) {
+          console.error("SMS error", e);
+        }
+      })();
+    } else {
+      // ✅ Mark this submission with "SMS skipped"
+      await collection.updateOne(
+        { _id: insertedId },
+        {
+          $set: {
+            smsStatus: {
+              ok: false,
+              response: "SMS skipped (already sent for this phone)",
+              sentAt: new Date(),
             },
-          }
-        );
-      } catch (e) {
-        console.error("SMS error", e);
-      }
-    })();
+          },
+        }
+      );
+    }
 
     return NextResponse.json({ ok: true, id: insertedId.toString() });
   } catch (err) {
