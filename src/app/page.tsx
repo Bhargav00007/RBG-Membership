@@ -135,7 +135,7 @@ export default function HomePage() {
             className="rounded-full mb-0 w-[150px] h-[150px]"
           />
           <h1 className="text-4xl pb-1 sm:text-4xl lg:text-4xl font-extrabold bg-gradient-to-r from-blue-700 to-blue-500 bg-clip-text text-transparent text-center">
-            Digital attendees registration
+            Digital attendance registration
           </h1>
         </div>
 
