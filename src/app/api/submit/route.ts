@@ -22,6 +22,12 @@ interface Submission {
     response?: unknown;
     sentAt: Date;
   };
+  regNo?: string; // ✅ stored reg number for DLT
+}
+
+function generateRegNo(seq: string): string {
+  // ✅ Shorter, friendly reg number
+  return "RBG-" + seq.slice(-5).toUpperCase();
 }
 
 export async function POST(req: NextRequest) {
@@ -41,7 +47,7 @@ export async function POST(req: NextRequest) {
 
     const normalizedPhone = normalizePhoneNumber(String(phone).trim());
 
-    // ✅ Check if this phone already has a successful SMS sent
+    // ✅ Check if SMS was already sent for this phone
     const alreadySent = await collection.findOne({
       phone: normalizedPhone,
       "smsStatus.ok": true,
@@ -62,48 +68,43 @@ export async function POST(req: NextRequest) {
     };
 
     const result = await collection.insertOne(doc);
-    const insertedId = result.insertedId;
+    const insertedId = result.insertedId.toString();
+
+    // Generate reg number from ObjectId
+    const regNo = generateRegNo(insertedId);
+
+    let smsStatus: Submission["smsStatus"];
 
     if (!alreadySent) {
-      // ✅ Only send SMS if not already sent for this phone
-      const message = `Dear ${doc.name},
-You are registered for Palnadu Chapter Launch, 21 Sep, 9:30AM @ SNR Convention, NRT. Lunch follows.`;
-      void (async () => {
-        try {
-          const smsRes = await sendSMS(normalizedPhone, message);
-          await collection.updateOne(
-            { _id: insertedId },
-            {
-              $set: {
-                smsStatus: {
-                  ok: smsRes.ok,
-                  response: smsRes.providerResponse ?? smsRes.error,
-                  sentAt: new Date(),
-                },
-              },
-            }
-          );
-        } catch (e) {
-          console.error("SMS error", e);
-        }
-      })();
+      // ✅ Use exact DLT template
+      const message = `Dear Member, your reg no:${regNo}.You are registered for FESTGO EVENTS -RBG Palnadu Chapter Launch 21st Sep, 9:30AM @ SNR Convention, NRT. Lunch follows."RBG TEAM palnadu"`;
+
+      const smsRes = await sendSMS(normalizedPhone, message);
+      smsStatus = {
+        ok: smsRes.ok,
+        response: smsRes.providerResponse ?? smsRes.error,
+        sentAt: new Date(),
+      };
     } else {
-      // ✅ Mark this submission with "SMS skipped"
-      await collection.updateOne(
-        { _id: insertedId },
-        {
-          $set: {
-            smsStatus: {
-              ok: false,
-              response: "SMS skipped (already sent for this phone)",
-              sentAt: new Date(),
-            },
-          },
-        }
-      );
+      smsStatus = {
+        ok: false,
+        response: "SMS skipped (already sent for this phone)",
+        sentAt: new Date(),
+      };
     }
 
-    return NextResponse.json({ ok: true, id: insertedId.toString() });
+    // ✅ update document with SMS status and regNo
+    await collection.updateOne(
+      { _id: result.insertedId },
+      { $set: { smsStatus, regNo } }
+    );
+
+    return NextResponse.json({
+      ok: true,
+      id: insertedId,
+      regNo,
+      smsStatus,
+    });
   } catch (err) {
     console.error("submit error", err);
     const message = err instanceof Error ? err.message : "Server error";
@@ -111,7 +112,6 @@ You are registered for Palnadu Chapter Launch, 21 Sep, 9:30AM @ SNR Convention, 
   }
 }
 
-// ✅ GET handler to fetch submissions
 export async function GET() {
   try {
     const { db } = await connectToDatabase();
@@ -128,6 +128,7 @@ export async function GET() {
       name: r.name,
       phone: r.phone,
       businessTitle: r.businessTitle,
+      regNo: r.regNo ?? "",
       address: {
         district: r.address?.district ?? "",
         mandal: r.address?.mandal ?? "",

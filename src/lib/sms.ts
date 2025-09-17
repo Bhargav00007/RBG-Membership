@@ -1,45 +1,21 @@
 // lib/sms.ts
 import axios from "axios";
 
-const SMS_HOST = process.env.SMS_HOST;
-const SMS_PORT = process.env.SMS_PORT;
-const SMS_USERNAME = process.env.SMS_USERNAME;
-const SMS_PASSWORD = process.env.SMS_PASSWORD;
-const SMS_SENDER = process.env.SMS_SENDER;
-const SMS_ENTITY_ID = process.env.SMS_ENTITY_ID ?? "";
+const SMS_API_URL = process.env.SMS_API_URL ?? "https://smslogin.co/v3/api.php";
+const SMS_USERNAME = process.env.SMS_USERNAME ?? "";
+const SMS_API_KEY = process.env.SMS_API_KEY ?? "";
+const SMS_SENDER = process.env.SMS_SENDER ?? "";
 const SMS_TEMPLATE_ID = process.env.SMS_TEMPLATE_ID ?? "";
-const SMS_TMID = process.env.SMS_TMID ?? "";
 
-if (!SMS_HOST || !SMS_PORT || !SMS_USERNAME || !SMS_PASSWORD || !SMS_SENDER) {
-  console.warn(
-    "lib/sms.ts: some SMS env vars are missing (SMS_HOST, SMS_PORT, etc.)"
-  );
-}
-
-/**
- * Normalize a phone number to the provider’s expected format.
- * - If it's a 10-digit Indian local number → "91XXXXXXXXXX"
- * - If it's "+91XXXXXXXXXX" → "91XXXXXXXXXX"
- * - If it’s just digits but not 10, prefix with 91
- */
 export function normalizePhoneNumber(raw: string): string {
   if (!raw) return raw;
   let s = String(raw).trim();
   s = s.replace(/\s+/g, "");
 
-  // remove leading 0
   if (s.startsWith("0")) s = s.slice(1);
-
-  // if starts with +91 → remove +
   if (s.startsWith("+91")) return s.slice(1);
-
-  // if 10 digits only → add 91
   if (/^\d{10}$/.test(s)) return `91${s}`;
-
-  // if already starts with 91 and is digits → keep
   if (/^91\d{10}$/.test(s)) return s;
-
-  // fallback: remove leading + if any
   if (s.startsWith("+")) return s.slice(1);
 
   return s;
@@ -51,50 +27,36 @@ export type SendSMSResult = {
   error?: string;
 };
 
-/**
- * Send an SMS via configured HTTP API
- */
 export async function sendSMS(
   toRaw: string,
-  message: string,
-  type = 0,
-  dlr = 1
+  message: string
 ): Promise<SendSMSResult> {
   try {
     const to = normalizePhoneNumber(toRaw);
 
-    const base = `http://${SMS_HOST}:${SMS_PORT}/sendsms/bulksms`;
     const params = new URLSearchParams({
-      username: SMS_USERNAME ?? "",
-      password: SMS_PASSWORD ?? "",
-      type: String(type),
-      dlr: String(dlr),
-      destination: to,
-      source: SMS_SENDER ?? "",
-      message, // must match DLT template exactly
-      entityid: SMS_ENTITY_ID,
-      tempid: SMS_TEMPLATE_ID,
-      tmid: SMS_TMID,
+      username: SMS_USERNAME,
+      apikey: SMS_API_KEY,
+      senderid: SMS_SENDER,
+      mobile: to,
+      message,
+      templateid: SMS_TEMPLATE_ID,
     });
 
-    const url = `${base}?${params.toString()}`;
+    const url = `${SMS_API_URL}?${params.toString()}`;
 
     const resp = await axios.get(url, {
       timeout: 10000,
       validateStatus: () => true,
     });
-
     const data = resp.data;
 
-    // Some providers always return 200, so check response body
+    // Success check: provider returns messageID or success text
     const success =
       typeof data === "string" &&
-      (data.startsWith("1701|") || data.includes("submitted"));
+      (data.includes("MessageID") || data.includes("success"));
 
-    return {
-      ok: success,
-      providerResponse: data,
-    };
+    return { ok: success, providerResponse: data };
   } catch (err) {
     const messageErr = err instanceof Error ? err.message : String(err);
     return { ok: false, error: messageErr };
